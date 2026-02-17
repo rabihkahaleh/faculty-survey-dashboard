@@ -1,0 +1,6 @@
+@import "tailwindcss";
+
+/* Optional: Add a clean background reset if needed, but Tailwind usually handles this */
+body {
+  @apply bg-slate-50 text-slate-900;
+}
