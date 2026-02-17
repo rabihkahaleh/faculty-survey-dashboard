@@ -7,7 +7,7 @@ import {
   Users, Building2, Clock,
   GraduationCap, Landmark, HeartHandshake,
   LineChart, Wallet, LayoutDashboard, ChevronRight, Menu,
-  MessageSquare, Quote, ThumbsUp, ThumbsDown, Minus
+  MessageSquare, Quote, ThumbsUp, ThumbsDown, Minus, Info, LogOut
 } from 'lucide-react';
 
 // --- Universal Chart Data Generator ---
@@ -143,13 +143,13 @@ const surveyCategories = [
     icon: Users,
     description: 'Faculty background, tenure, and personal demographics.',
     questions: [
-      { text: "Gender", type: "pie", data: [{ name: 'Male', count: 77 }, { name: 'Female', count: 73 }] },
-      { text: "Marital Status", type: "pie", data: [{ name: 'Married', count: 126 }, { name: 'Single', count: 20 }, { name: 'Divorced', count: 4 }] },
-      { text: "Faculty Affiliation", type: "bar", data: [{ name: 'Arts & Sciences', count: 52 }, { name: 'Engineering', count: 28 }, { name: 'Business & Mgt', count: 16 }, { name: 'Health Sciences', count: 16 }, { name: 'Technology', count: 10 }, { name: 'Other', count: 28 }] },
-      { text: "Academic Rank", type: "bar", data: [{ name: 'Professor', count: 25 }, { name: 'Associate Prof', count: 35 }, { name: 'Assistant Prof', count: 45 }, { name: 'Lecturer', count: 30 }, { name: 'Instructor', count: 15 }] },
-      { text: "Year of Employment", type: "bar", data: [{ name: '< 2000', count: 18 }, { name: '2000-2005', count: 27 }, { name: '2006-2010', count: 13 }, { name: '2011-2015', count: 35 }, { name: '2016-2020', count: 22 }, { name: '2021+', count: 35 }] },
-      { text: "Campus", type: "pie", data: [{ name: 'Main Campus', count: 110 }, { name: 'Dekweneh', count: 25 }, { name: 'Akkar/Other', count: 15 }] },
-      { text: "Number of Children", type: "bar", data: [{ name: 'None', count: 35 }, { name: '1 Child', count: 40 }, { name: '2 Children', count: 50 }, { name: '3+ Children', count: 25 }] },
+      { text: "Gender", type: "pie", summaryType: "nominal_all", data: [{ name: 'Male', count: 77 }, { name: 'Female', count: 73 }] },
+      { text: "Marital Status", type: "pie", summaryType: "nominal_all", data: [{ name: 'Married', count: 126 }, { name: 'Single', count: 20 }, { name: 'Divorced', count: 4 }] },
+      { text: "Faculty Affiliation", type: "bar", summaryType: "nominal_top3", data: [{ name: 'Arts & Sciences', count: 52 }, { name: 'Engineering', count: 28 }, { name: 'Business & Mgt', count: 16 }, { name: 'Health Sciences', count: 16 }, { name: 'Technology', count: 10 }, { name: 'Other', count: 28 }] },
+      { text: "Academic Rank", type: "bar", summaryType: "nominal_top3", data: [{ name: 'Professor', count: 25 }, { name: 'Associate Prof', count: 35 }, { name: 'Assistant Prof', count: 45 }, { name: 'Lecturer', count: 30 }, { name: 'Instructor', count: 15 }] },
+      { text: "Year of Employment", type: "bar", summaryType: "nominal_top3", data: [{ name: '< 2000', count: 18 }, { name: '2000-2005', count: 27 }, { name: '2006-2010', count: 13 }, { name: '2011-2015', count: 35 }, { name: '2016-2020', count: 22 }, { name: '2021+', count: 35 }] },
+      { text: "Campus", type: "pie", summaryType: "nominal_all", data: [{ name: 'Main Campus', count: 110 }, { name: 'Dekweneh', count: 25 }, { name: 'Akkar/Other', count: 15 }] },
+      { text: "Number of Children", type: "bar", summaryType: "nominal_all", data: [{ name: 'None', count: 35 }, { name: '1 Child', count: 40 }, { name: '2 Children', count: 50 }, { name: '3+ Children', count: 25 }] },
     ]
   },
   {
@@ -158,8 +158,8 @@ const surveyCategories = [
     icon: Clock,
     description: 'Assessment of working hours, teaching loads, and overall burden.',
     questions: [
-      { text: "How would you rate your current workload?", type: "bar", data: [{ name: 'Just right', count: 68 }, { name: 'Too heavy', count: 52 }, { name: 'Much too heavy', count: 24 }, { name: 'Too light', count: 6 }] },
-      { text: "About how many hours do you work in a typical week?", type: "bar", data: [{ name: '10-20 hrs', count: 12 }, { name: '25-35 hrs', count: 58 }, { name: '40-50 hrs', count: 80 }] },
+      { text: "How would you rate your current workload?", type: "bar", summaryType: "workload_rating", data: [{ name: 'Just right', count: 68 }, { name: 'Too heavy', count: 52 }, { name: 'Much too heavy', count: 24 }, { name: 'Too light', count: 6 }] },
+      { text: "About how many hours do you work in a typical week?", type: "bar", summaryType: "workload_hours", data: [{ name: '10-20 hrs', count: 12 }, { name: '25-35 hrs', count: 58 }, { name: '40-50 hrs', count: 80 }] },
       { text: "How satisfied are you with the distribution of the teaching workload in your department?", type: "satisfaction", sentiment: "mixed" },
       { text: "How satisfied are you with your teaching schedule?", type: "satisfaction", sentiment: "positive" },
       { text: "Are you satisfied with the ratios allocated by your Faculty to teaching, research and university service?", type: "satisfaction", sentiment: "negative" },
@@ -287,44 +287,71 @@ const surveyCategories = [
 ];
 
 
-// --- Custom Tooltip Component ---
-const CustomTooltip = ({ active, payload, total }: { active?: boolean; payload?: any[]; total: number }) => {
-  if (active && payload && payload.length) {
-    const data = payload[0].payload;
-    const value = payload[0].value;
-    const percent = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
-    const title = data.name;
+// --- Summary Grouping & Bar Color Helpers ---
 
-    return (
-      <div className="bg-white/95 backdrop-blur-md p-4 border border-slate-200 shadow-xl rounded-xl text-sm z-50 min-w-[220px]">
-        <p className="font-bold text-slate-800 border-b border-slate-100 pb-2 mb-3">
-          {title}
-        </p>
-        <div className="flex justify-between items-center mb-4 bg-slate-50 p-2 rounded-lg">
-          <span className="text-slate-600 font-medium">Total:</span>
-          <span className="font-bold text-blue-600 text-base">{value} <span className="text-xs text-slate-400 font-normal">({percent}%)</span></span>
-        </div>
-
-        {data.faculties && (
-          <div>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Breakdown by Faculty</p>
-            <div className="space-y-1.5">
-              {Object.entries(data.faculties).map(([facultyShort, facultyData]: [string, any]) => (
-                <div key={facultyShort} className="flex justify-between items-center text-xs">
-                  <span className="text-slate-600 truncate max-w-[140px]" title={facultyData.full}>
-                    <span className="font-bold text-slate-700 mr-1">{facultyShort}</span>
-                    <span className="text-[10px] text-slate-400 hidden sm:inline-block">({facultyData.full})</span>
-                  </span>
-                  <span className="font-medium text-slate-800 bg-slate-100 px-1.5 py-0.5 rounded min-w-[24px] text-center">{facultyData.count}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
-    );
+const SUMMARY_GROUPS: Record<string, { labels: string[]; indices: number[][] }> = {
+  satisfaction: {
+    labels: ['SATISFIED', 'NEUTRAL', 'NOT SAT.'],
+    indices: [[0, 1], [2], [3, 4]]
+  },
+  frequency: {
+    labels: ['OFTEN', 'SOMETIMES', 'RARELY'],
+    indices: [[0, 1], [2], [3, 4]]
+  },
+  likelihood: {
+    labels: ['LIKELY', 'NEUTRAL', 'UNLIKELY'],
+    indices: [[0, 1], [2], [3, 4]]
+  },
+  extent: {
+    labels: ['GREAT', 'SOME', 'NOT AT ALL'],
+    indices: [[0], [1], [2]]
+  },
+  yesno: {
+    labels: ['YES', 'NO'],
+    indices: [[0], [1]]
+  },
+  workload_rating: {
+    labels: ['RIGHT', 'HEAVY', 'LIGHT'],
+    indices: [[0], [1, 2], [3]]
+  },
+  workload_hours: {
+    labels: ['40-50h', '25-35h', '10-20h'],
+    indices: [[2], [1], [0]]
   }
-  return null;
+};
+
+const getBarColor = (index: number, scaleType: string, questionText?: string) => {
+  if (questionText === 'Marital Status') {
+    if (index === 0) return '#2563eb'; // Married -> Blue
+    if (index === 1) return '#10b981'; // Single -> Green
+    if (index === 2) return '#ef4444'; // Divorced -> Red
+  }
+  if (scaleType === 'pie' || scaleType === 'bar') {
+    // Demographics: vibrant distinct colors
+    const palette = ['#6366f1', '#f59e0b', '#10b981', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316'];
+    return palette[index % palette.length];
+  }
+  if (scaleType === 'yesno') {
+    return index === 0 ? '#10b981' : '#ef4444';
+  }
+  if (scaleType === 'extent') {
+    return index === 0 ? '#10b981' : index === 1 ? '#94a3b8' : '#ef4444';
+  }
+  // 5-item scales: first 2 green, middle gray, last 2 red
+  if (index <= 1) return '#10b981';
+  if (index === 2) return '#94a3b8';
+  return '#ef4444';
+};
+
+const getSummaryColors = (groupIndex: number, totalGroups: number) => {
+  if (totalGroups === 2) {
+    return groupIndex === 0
+      ? 'bg-green-50 text-green-700 border-green-200'
+      : 'bg-red-50 text-red-700 border-red-200';
+  }
+  if (groupIndex === 0) return 'bg-green-50 text-green-700 border-green-200';
+  if (groupIndex === totalGroups - 1) return 'bg-red-50 text-red-700 border-red-200';
+  return 'bg-slate-50 text-slate-600 border-slate-200';
 };
 
 // --- Visualizer Component for Individual Questions ---
@@ -332,90 +359,100 @@ const CustomTooltip = ({ active, payload, total }: { active?: boolean; payload?:
 const QuestionCard = ({ question, index }: { question: any; index: number }) => {
   const chartData = useMemo(() => {
     const baseData = question.data || generateData(question.type, question.sentiment);
-    // Map over data to ensure every point has a faculty breakdown
     return baseData.map((item: any) => ({
       ...item,
       faculties: item.faculties || generateFacultyBreakdown(item.count)
     }));
   }, [question]);
 
-  // Calculate total respondents for this question to compute percentages
   const total = useMemo(() => chartData.reduce((sum: number, item: any) => sum + item.count, 0), [chartData]);
 
-  const isPie = question.type === 'pie' || question.type === 'yesno';
-  const colorPalette = isPie ? COLORS.yesno : (question.type === 'extent' ? COLORS.extent : COLORS.positive);
+  const scaleType = question.type as string;
+  const summaryType = question.summaryType;
+
+  // Determine summary configuration: Explicit or default based on scaleType
+  let summaryGroup = SUMMARY_GROUPS[summaryType] || SUMMARY_GROUPS[scaleType];
+
+  // Dynamic summary generation for nominal data (demographics)
+  if (!summaryGroup && (summaryType === 'nominal_all' || summaryType === 'nominal_top3')) {
+    // Sort by count descending to find top items
+    const sortedIndices = chartData
+      .map((item: any, idx: number) => ({ count: item.count, idx }))
+      .sort((a: any, b: any) => b.count - a.count);
+
+    // Determine how many items to show
+    const countToShow = summaryType === 'nominal_all' ? chartData.length : 3;
+    const topIndices = sortedIndices.slice(0, countToShow);
+
+    summaryGroup = {
+      labels: topIndices.map((item: any) => chartData[item.idx].name.toUpperCase()),
+      indices: topIndices.map((item: any) => [item.idx])
+    };
+  }
+
+  const hasSummary = !!summaryGroup;
+  const maxCount = Math.max(...chartData.map((d: any) => d.count));
 
   return (
-    <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow flex flex-col h-[420px] w-full">
-      <div className="flex gap-4 mb-6 items-start">
-        <span className="flex items-center justify-center shrink-0 w-8 h-8 rounded-full bg-blue-50 text-blue-600 text-sm font-bold mt-0.5">
-          {index + 1}
-        </span>
-        <h3 className="text-base font-semibold text-slate-800 leading-tight">
-          {question.text}
-        </h3>
+    <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow flex flex-col w-full">
+      {/* Title */}
+      <div className="flex items-center justify-between mb-5">
+        <div className="flex items-center gap-3">
+          <span className="flex items-center justify-center shrink-0 w-7 h-7 rounded-full bg-blue-50 text-blue-600 text-xs font-bold">
+            {index + 1}
+          </span>
+          <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wide leading-tight">
+            {question.text}
+          </h3>
+        </div>
+        <Info size={16} className="text-slate-400 shrink-0 ml-2" />
       </div>
 
-      <div className="flex-1 w-full min-h-0">
-        <ResponsiveContainer width="100%" height="100%">
-          {isPie ? (
-            <PieChart>
-              <Pie
-                data={chartData}
-                cx="50%"
-                cy="50%"
-                innerRadius={45}
-                outerRadius={75}
-                paddingAngle={2}
-                dataKey="count"
-                label={({ value, percent }: any) => percent > 0 ? `${value} (${(percent * 100).toFixed(1)}%)` : ''}
-                labelLine={{ stroke: '#94a3b8', strokeWidth: 1 }}
+      {/* Summary Row */}
+      {hasSummary && (
+        <div className={`grid gap-2 mb-5 ${summaryGroup.labels.length === 2 ? 'grid-cols-2' : 'grid-cols-3'}`}>
+          {summaryGroup.labels.map((label, gi) => {
+            const groupCount = summaryGroup.indices[gi].reduce((sum, idx) => sum + (chartData[idx]?.count || 0), 0);
+            const pct = total > 0 ? Math.round((groupCount / total) * 100) : 0;
+            return (
+              <div
+                key={label}
+                className={`border rounded-lg py-2.5 px-3 text-center ${getSummaryColors(gi, summaryGroup.labels.length)}`}
               >
-                {chartData.map((_entry: any, i: number) => (
-                  <Cell key={`cell-${i}`} fill={colorPalette[i % colorPalette.length]} />
-                ))}
-              </Pie>
-              <Tooltip content={<CustomTooltip total={total} />} cursor={{ fill: 'transparent' }} />
-              <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ fontSize: '11px', color: '#64748b' }} />
-            </PieChart>
-          ) : (
-            <BarChart
-              data={chartData}
-              layout={question.type === 'bar' ? 'vertical' : 'horizontal'}
-              margin={question.type === 'bar' ? { top: 15, right: 75, left: 5, bottom: 20 } : { top: 25, right: 20, left: -20, bottom: 10 }}
-            >
-              <CartesianGrid strokeDasharray="3 3" vertical={question.type !== 'bar'} horizontal={question.type === 'bar'} stroke="#f1f5f9" />
-              {question.type === 'bar' ? (
-                <>
-                  <XAxis type="number" hide />
-                  <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#64748b' }} width={155} />
-                </>
-              ) : (
-                <>
-                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#64748b', fontWeight: 500 }} interval={0} angle={-35} textAnchor="end" height={90} />
-                  <YAxis hide />
-                </>
-              )}
-              <Tooltip content={<CustomTooltip total={total} />} cursor={{ fill: '#f8fafc' }} />
-              <Bar
-                dataKey="count"
-                radius={question.type === 'bar' ? [0, 4, 4, 0] : [4, 4, 0, 0]}
-              >
-                {chartData.map((_entry: any, i: number) => (
-                  <Cell key={`cell-${i}`} fill={colorPalette[i % colorPalette.length]} />
-                ))}
-                <LabelList
-                  dataKey="count"
-                  position={question.type === 'bar' ? 'right' : 'top'}
-                  formatter={(value: any) => `${value} (${((value / total) * 100).toFixed(1)}%)`}
-                  fill="#64748b"
-                  fontSize={11}
-                  fontWeight={600}
-                />
-              </Bar>
-            </BarChart>
-          )}
-        </ResponsiveContainer>
+                <div className="text-[10px] font-bold tracking-wider mb-0.5">{label}</div>
+                <div className="text-lg font-extrabold">{groupCount} <span className="text-xs font-semibold opacity-70">({pct}%)</span></div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Response Breakdown */}
+      <div>
+        <p className="text-sm font-semibold text-slate-600 mb-3">
+          Response Breakdown <span className="text-slate-400 font-normal">(Total: {total})</span>
+        </p>
+        <div className="space-y-2.5">
+          {chartData.map((item: any, i: number) => {
+            const pct = total > 0 ? Math.round((item.count / total) * 100) : 0;
+            const barWidth = maxCount > 0 ? (item.count / maxCount) * 100 : 0;
+            const color = getBarColor(i, scaleType, question.text);
+            return (
+              <div key={i} className="group">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-sm text-slate-700">{item.name}</span>
+                  <span className="text-sm font-semibold text-slate-600">{item.count} ({pct}%)</span>
+                </div>
+                <div className="w-full bg-slate-100 rounded-full h-2.5">
+                  <div
+                    className="h-2.5 rounded-full transition-all duration-500"
+                    style={{ width: `${barWidth}%`, backgroundColor: color }}
+                  />
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
@@ -532,89 +569,135 @@ export default function App() {
     [activeTabId]);
 
   return (
-    <div className="min-h-screen bg-slate-50 font-sans text-slate-900 flex flex-col md:flex-row overflow-hidden">
+    <div className="min-h-screen bg-slate-50 font-sans text-slate-900 flex flex-col overflow-hidden">
 
-      {/* Sidebar Navigation */}
-      <aside
-        className={`bg-white border-r border-slate-200 shrink-0 md:h-screen flex flex-col z-10 shadow-[4px_0_24px_rgba(0,0,0,0.02)] transition-all duration-300 ${isSidebarCollapsed ? 'w-full md:w-20' : 'w-full md:w-72'}`}
-      >
-        <div className={`p-6 border-b border-slate-100 flex items-center ${isSidebarCollapsed ? 'justify-center' : 'justify-between'}`}>
-          {!isSidebarCollapsed && (
-            <div>
-              <div className="flex items-center gap-2 text-blue-700 font-extrabold text-xl mb-1 tracking-tight">
-                <LayoutDashboard size={24} className="text-blue-600" />
-                Survey Matrix
-              </div>
-              <p className="text-xs text-slate-500 font-medium">100+ Visualizations</p>
+      {/* Top Header Bar */}
+      <header className="bg-slate-900 text-white shrink-0 z-20">
+        <div className="flex items-center justify-between px-6 py-3">
+          {/* Left: Logo + Title */}
+          <div className="flex items-center gap-4">
+            <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center">
+              <span className="text-slate-900 font-extrabold text-xs">UOB</span>
             </div>
-          )}
-          <button
-            onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-            className="p-2 bg-slate-50 hover:bg-slate-100 text-slate-600 rounded-lg transition-colors hidden md:block"
-            title={isSidebarCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
-          >
-            <Menu size={20} />
-          </button>
+            <div>
+              <h1 className="text-lg font-bold leading-tight">Provost Office</h1>
+              <p className="text-slate-400 text-xs">Faculty Survey Comprehensive Dashboard</p>
+            </div>
+          </div>
+
+          {/* Right: Logout + Confidential */}
+          <div className="flex items-center gap-8">
+            <button className="flex items-center gap-2 text-slate-300 hover:text-white transition-colors text-sm">
+              Logout <LogOut size={16} />
+            </button>
+            <div className="text-right">
+              <p className="text-xs font-bold tracking-wider">CONFIDENTIAL</p>
+              <p className="text-slate-400 text-xs">2025 - 2026 Academic Year</p>
+            </div>
+          </div>
         </div>
 
-        <div className="p-4 overflow-y-auto flex-1 space-y-1.5 flex md:block overflow-x-auto md:overflow-x-visible hide-scrollbar">
-          {surveyCategories.map(cat => {
-            const Icon = cat.icon;
-            const isActive = activeTabId === cat.id;
-            return (
-              <button
-                key={cat.id}
-                onClick={() => setActiveTabId(cat.id)}
-                title={isSidebarCollapsed ? cat.label : ""}
-                className={`w-full flex items-center px-4 py-3.5 rounded-xl text-left text-sm font-semibold transition-all whitespace-nowrap md:whitespace-normal shrink-0 md:shrink border ${isActive
-                  ? 'bg-blue-50/80 text-blue-700 border-blue-200 shadow-sm'
-                  : 'bg-transparent text-slate-600 border-transparent hover:bg-slate-100/50 hover:text-slate-900'
-                  } ${isSidebarCollapsed ? 'justify-center' : 'justify-between'}`}
-              >
-                <div className="flex items-center gap-3">
-                  <Icon size={isSidebarCollapsed ? 24 : 18} className={isActive ? 'text-blue-600' : 'text-slate-400'} />
-                  {!isSidebarCollapsed && <span>{cat.label}</span>}
+        {/* Stats bar */}
+        <div className="flex items-center gap-6 px-6 py-2 border-t border-slate-800 text-xs">
+          <span className="flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-blue-500" />
+            Total
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-green-500" />
+            150 Respondents
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-amber-500" />
+            62 Comments
+          </span>
+        </div>
+      </header>
+
+      <div className="flex flex-col md:flex-row flex-1 overflow-hidden">
+
+        {/* Sidebar Navigation */}
+        <aside
+          className={`bg-white border-r border-slate-200 shrink-0 md:h-screen flex flex-col z-10 shadow-[4px_0_24px_rgba(0,0,0,0.02)] transition-all duration-300 ${isSidebarCollapsed ? 'w-full md:w-20' : 'w-full md:w-72'}`}
+        >
+          <div className={`p-6 border-b border-slate-100 flex items-center ${isSidebarCollapsed ? 'justify-center' : 'justify-between'}`}>
+            {!isSidebarCollapsed && (
+              <div>
+                <div className="flex items-center gap-2 text-blue-700 font-extrabold text-xl mb-1 tracking-tight">
+                  <LayoutDashboard size={24} className="text-blue-600" />
+                  Survey Matrix
                 </div>
-                {!isSidebarCollapsed && isActive && <ChevronRight size={16} className="text-blue-400 hidden md:block" />}
-              </button>
-            )
-          })}
-        </div>
-      </aside>
-
-      {/* Main Content Area (Full Width) */}
-      <main className="flex-1 md:h-screen overflow-y-auto bg-slate-50 relative w-full">
-        <div className="p-6 md:p-10 max-w-full mx-auto space-y-8 pb-24">
-
-          {/* Header */}
-          <header className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-slate-200 pb-6">
-            <div>
-              <div className="flex items-center gap-3 text-blue-600 mb-2">
-                <activeCategory.icon size={28} />
-                <span className="text-sm font-bold uppercase tracking-wider">{activeCategory.id}</span>
+                <p className="text-xs text-slate-500 font-medium">100+ Visualizations</p>
               </div>
-              <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-slate-900">
-                {activeCategory.label}
-              </h1>
-              <p className="text-slate-500 mt-2 text-base md:text-lg max-w-2xl">
-                {activeCategory.description} Showing {activeCategory.id === 'comments' ? 'qualitative feedback analysis' : `${activeCategory.questions.length} metric visualizations`}.
-              </p>
-            </div>
-          </header>
+            )}
+            <button
+              onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+              className="p-2 bg-slate-50 hover:bg-slate-100 text-slate-600 rounded-lg transition-colors hidden md:block"
+              title={isSidebarCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
+            >
+              <Menu size={20} />
+            </button>
+          </div>
 
-          {/* Conditional Rendering: Grid of Questions OR Comments View */}
-          {activeTabId === 'comments' ? (
-            <CommentsDashboard />
-          ) : (
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
-              {activeCategory.questions.map((q, idx) => (
-                <QuestionCard key={`${activeCategory.id}-${idx}`} question={q} index={idx} />
-              ))}
-            </div>
-          )}
+          <div className="p-4 overflow-y-auto flex-1 space-y-1.5 flex md:block overflow-x-auto md:overflow-x-visible hide-scrollbar">
+            {surveyCategories.map(cat => {
+              const Icon = cat.icon;
+              const isActive = activeTabId === cat.id;
+              return (
+                <button
+                  key={cat.id}
+                  onClick={() => setActiveTabId(cat.id)}
+                  title={isSidebarCollapsed ? cat.label : ""}
+                  className={`w-full flex items-center px-4 py-3.5 rounded-xl text-left text-sm font-semibold transition-all whitespace-nowrap md:whitespace-normal shrink-0 md:shrink border ${isActive
+                    ? 'bg-blue-50/80 text-blue-700 border-blue-200 shadow-sm'
+                    : 'bg-transparent text-slate-600 border-transparent hover:bg-slate-100/50 hover:text-slate-900'
+                    } ${isSidebarCollapsed ? 'justify-center' : 'justify-between'}`}
+                >
+                  <div className="flex items-center gap-3">
+                    <Icon size={isSidebarCollapsed ? 24 : 18} className={isActive ? 'text-blue-600' : 'text-slate-400'} />
+                    {!isSidebarCollapsed && <span>{cat.label}</span>}
+                  </div>
+                  {!isSidebarCollapsed && isActive && <ChevronRight size={16} className="text-blue-400 hidden md:block" />}
+                </button>
+              )
+            })}
+          </div>
+        </aside>
 
-        </div>
-      </main>
+        {/* Main Content Area (Full Width) */}
+        <main className="flex-1 md:h-screen overflow-y-auto bg-slate-50 relative w-full">
+          <div className="p-6 md:p-10 max-w-full mx-auto space-y-8 pb-24">
+
+            {/* Header */}
+            <header className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-slate-200 pb-6">
+              <div>
+                <div className="flex items-center gap-3 text-blue-600 mb-2">
+                  <activeCategory.icon size={28} />
+                  <span className="text-sm font-bold uppercase tracking-wider">{activeCategory.id}</span>
+                </div>
+                <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-slate-900">
+                  {activeCategory.label}
+                </h1>
+                <p className="text-slate-500 mt-2 text-base md:text-lg max-w-2xl">
+                  {activeCategory.description} Showing {activeCategory.id === 'comments' ? 'qualitative feedback analysis' : `${activeCategory.questions.length} metric visualizations`}.
+                </p>
+              </div>
+            </header>
+
+            {/* Conditional Rendering: Grid of Questions OR Comments View */}
+            {activeTabId === 'comments' ? (
+              <CommentsDashboard />
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                {activeCategory.questions.map((q, idx) => (
+                  <QuestionCard key={`${activeCategory.id}-${idx}`} question={q} index={idx} />
+                ))}
+              </div>
+            )}
+
+          </div>
+        </main>
+      </div>
     </div>
   );
 }
