@@ -46,11 +46,11 @@ const SCALES = {
 };
 
 const COLORS = {
-  positive: ['#10b981', '#34d399', '#94a3b8', '#f87171', '#ef4444'], // Green to Red
-  negative: ['#ef4444', '#f87171', '#94a3b8', '#34d399', '#10b981'], // Red to Green (for negative questions like "Leave")
+  positive: ['#10b981', '#10b981', '#94a3b8', '#f87171', '#ef4444'], // Green, Green, Gray, Light Red, Red
+  negative: ['#ef4444', '#ef4444', '#94a3b8', '#34d399', '#10b981'], // Red to Green (for negative questions like "Leave")
   neutral: ['#3b82f6', '#60a5fa', '#93c5fd', '#bfdbfe', '#e0e7ff'], // Blues
-  extent: ['#8b5cf6', '#a78bfa', '#cbd5e1'], // Purples
-  yesno: ['#3b82f6', '#f43f5e'],
+  extent: ['#10b981', '#94a3b8', '#ef4444'], // Green, Gray, Red
+  yesno: ['#10b981', '#ef4444'], // Green, Red
   sentiment: {
     positive: '#10b981',
     neutral: '#f59e0b',
@@ -332,15 +332,14 @@ const getBarColor = (index: number, scaleType: string, questionText?: string) =>
     return palette[index % palette.length];
   }
   if (scaleType === 'yesno') {
-    return index === 0 ? '#10b981' : '#ef4444';
+    return COLORS.yesno[index % COLORS.yesno.length];
   }
   if (scaleType === 'extent') {
-    return index === 0 ? '#10b981' : index === 1 ? '#94a3b8' : '#ef4444';
+    return COLORS.extent[index % COLORS.extent.length];
   }
+
   // 5-item scales: first 2 green, middle gray, last 2 red
-  if (index <= 1) return '#10b981';
-  if (index === 2) return '#94a3b8';
-  return '#ef4444';
+  return COLORS.positive[index % COLORS.positive.length];
 };
 
 const getSummaryColors = (groupIndex: number, totalGroups: number) => {
@@ -569,7 +568,7 @@ export default function App() {
     [activeTabId]);
 
   return (
-    <div className="min-h-screen bg-slate-50 font-sans text-slate-900 flex flex-col overflow-hidden">
+    <div className="h-screen bg-slate-50 font-sans text-slate-900 flex flex-col overflow-hidden">
 
       {/* Top Header Bar */}
       <header className="bg-slate-900 text-white shrink-0 z-20">
@@ -618,7 +617,7 @@ export default function App() {
 
         {/* Sidebar Navigation */}
         <aside
-          className={`bg-white border-r border-slate-200 shrink-0 md:h-screen flex flex-col z-10 shadow-[4px_0_24px_rgba(0,0,0,0.02)] transition-all duration-300 ${isSidebarCollapsed ? 'w-full md:w-20' : 'w-full md:w-72'}`}
+          className={`bg-white border-r border-slate-200 shrink-0 md:h-full flex flex-col z-10 shadow-[4px_0_24px_rgba(0,0,0,0.02)] transition-all duration-300 ${isSidebarCollapsed ? 'w-full md:w-20' : 'w-full md:w-72'}`}
         >
           <div className={`p-6 border-b border-slate-100 flex items-center ${isSidebarCollapsed ? 'justify-center' : 'justify-between'}`}>
             {!isSidebarCollapsed && (
@@ -665,7 +664,7 @@ export default function App() {
         </aside>
 
         {/* Main Content Area (Full Width) */}
-        <main className="flex-1 md:h-screen overflow-y-auto bg-slate-50 relative w-full">
+        <main className="flex-1 overflow-y-auto bg-slate-50 relative w-full">
           <div className="p-6 md:p-10 max-w-full mx-auto space-y-8 pb-24">
 
             {/* Header */}
