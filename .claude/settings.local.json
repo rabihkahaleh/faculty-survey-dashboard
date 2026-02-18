@@ -4,7 +4,8 @@
       "Bash(npm install:*)",
       "Bash(npm run build:*)",
       "Bash(\"d:/react apps/faculty-survey/parse-survey.js\":*)",
-      "Bash(node:*)"
+      "Bash(node:*)",
+      "Bash(\"d:/react apps/faculty-survey/extract-comments.js\":*)"
     ]
   }
 }
